@@ -5,6 +5,8 @@ import com.init.backend.entity.Usuario;
 import com.init.backend.exception.ResourceNotFoundException;
 import com.init.backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +41,7 @@ public class UsuarioService {
         return new UsuarioDTO(savedUsuario);
     }
     
+    @Cacheable(value = "usuarios", key = "#id")
     public UsuarioDTO getUsuarioById(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));
@@ -67,6 +70,7 @@ public class UsuarioService {
                 .map(UsuarioDTO::new);
     }
     
+    @CacheEvict(value = "usuarios", key = "#id")
     public UsuarioDTO updateUsuario(Long id, UsuarioDTO usuarioDTO) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));

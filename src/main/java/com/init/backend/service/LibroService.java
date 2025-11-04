@@ -7,6 +7,8 @@ import com.init.backend.exception.ResourceNotFoundException;
 import com.init.backend.repository.AutorRepository;
 import com.init.backend.repository.LibroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class LibroService {
     @Autowired
     private AutorRepository autorRepository;
     
+    @CacheEvict(value = {"libros", "librosByAutor"}, allEntries = true)
     public LibroDTO createLibro(LibroDTO libroDTO) {
         if (libroRepository.existsByIsbn(libroDTO.getIsbn())) {
             throw new IllegalArgumentException("Libro with this ISBN already exists");
@@ -43,6 +46,7 @@ public class LibroService {
         return new LibroDTO(savedLibro);
     }
     
+    @Cacheable(value = "libros", key = "#id")
     public LibroDTO getLibroById(Long id) {
         Libro libro = libroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Libro", "id", id));
@@ -70,12 +74,14 @@ public class LibroService {
                 .map(LibroDTO::new);
     }
     
+    @Cacheable(value = "librosByAutor", key = "#autorId")
     public List<LibroDTO> getLibrosByAutor(Long autorId) {
         return libroRepository.findByAutorId(autorId).stream()
                 .map(LibroDTO::new)
                 .collect(Collectors.toList());
     }
     
+    @CacheEvict(value = {"libros", "librosByAutor"}, key = "#id", allEntries = true)
     public LibroDTO updateLibro(Long id, LibroDTO libroDTO) {
         Libro libro = libroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Libro", "id", id));
@@ -102,6 +108,7 @@ public class LibroService {
         return new LibroDTO(updatedLibro);
     }
     
+    @CacheEvict(value = {"libros", "librosByAutor"}, key = "#id", allEntries = true)
     public void deleteLibro(Long id) {
         if (!libroRepository.existsById(id)) {
             throw new ResourceNotFoundException("Libro", "id", id);

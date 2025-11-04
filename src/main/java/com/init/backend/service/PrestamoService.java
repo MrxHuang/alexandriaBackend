@@ -9,6 +9,8 @@ import com.init.backend.repository.LibroRepository;
 import com.init.backend.repository.PrestamoRepository;
 import com.init.backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,7 @@ public class PrestamoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
     
+    @CacheEvict(value = {"prestamos", "libros", "librosByAutor"}, allEntries = true)
     public PrestamoDTO createPrestamo(PrestamoDTO prestamoDTO) {
         Libro libro = libroRepository.findById(prestamoDTO.getLibroId())
                 .orElseThrow(() -> new ResourceNotFoundException("Libro", "id", prestamoDTO.getLibroId()));
@@ -60,6 +63,7 @@ public class PrestamoService {
         return new PrestamoDTO(savedPrestamo);
     }
     
+    @Cacheable(value = "prestamos", key = "#id")
     public PrestamoDTO getPrestamoById(Long id) {
         Prestamo prestamo = prestamoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Prestamo", "id", id));
@@ -92,6 +96,7 @@ public class PrestamoService {
                 .map(PrestamoDTO::new);
     }
     
+    @CacheEvict(value = {"prestamos", "libros", "librosByAutor"}, key = "#id", allEntries = true)
     public PrestamoDTO devolverLibro(Long id) {
         Prestamo prestamo = prestamoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Prestamo", "id", id));
@@ -107,6 +112,7 @@ public class PrestamoService {
         return new PrestamoDTO(updatedPrestamo);
     }
     
+    @CacheEvict(value = {"prestamos", "libros", "librosByAutor"}, key = "#id", allEntries = true)
     public void deletePrestamo(Long id) {
         if (!prestamoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Prestamo", "id", id);
