@@ -1,6 +1,7 @@
 package com.init.backend.controller;
 
 import com.init.backend.dto.AuthResponse;
+import com.init.backend.dto.FirebaseAuthRequest;
 import com.init.backend.dto.LoginRequest;
 import com.init.backend.dto.UsuarioDTO;
 import com.init.backend.service.AuthService;
@@ -26,5 +27,11 @@ public class AuthController {
     public ResponseEntity<UsuarioDTO> register(@Valid @RequestBody UsuarioDTO usuarioDTO) {
         UsuarioDTO createdUsuario = authService.register(usuarioDTO);
         return ResponseEntity.ok(createdUsuario);
+    }
+    
+    @PostMapping("/firebase")
+    public ResponseEntity<AuthResponse> loginWithFirebase(@Valid @RequestBody FirebaseAuthRequest firebaseRequest) {
+        AuthResponse response = authService.loginWithFirebase(firebaseRequest);
+        return ResponseEntity.ok(response);
     }
 }

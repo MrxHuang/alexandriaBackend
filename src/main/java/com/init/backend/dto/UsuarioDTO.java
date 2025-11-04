@@ -11,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,6 +39,10 @@ public class UsuarioDTO {
     @NotNull(message = "Estado is required")
     private UserStatus estado;
     
+    private LocalDateTime fechaCreacion;
+    
+    private LocalDateTime fechaActualizacion;
+    
     // Password only for creation/update, not returned
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
@@ -48,6 +54,8 @@ public class UsuarioDTO {
         this.email = usuario.getEmail();
         this.rol = usuario.getRol();
         this.estado = usuario.getEstado();
+        this.fechaCreacion = usuario.getFechaCreacion();
+        this.fechaActualizacion = usuario.getFechaActualizacion();
         // Password is never returned
     }
     

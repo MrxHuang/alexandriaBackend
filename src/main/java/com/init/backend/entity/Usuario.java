@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -40,9 +41,26 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private UserStatus estado;
     
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime fechaActualizacion;
+    
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Prestamo> prestamos;
+    
+    @PrePersist
+    protected void onCreate() {
+        fechaCreacion = LocalDateTime.now();
+        fechaActualizacion = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        fechaActualizacion = LocalDateTime.now();
+    }
     
     public enum UserRole {
         ADMIN, LECTOR
