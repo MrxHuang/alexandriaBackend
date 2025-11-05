@@ -42,13 +42,13 @@ public class PrestamoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", prestamoDTO.getUsuarioId()));
         
         // Check if book is available
-        List<Prestamo> activePrestamos = prestamoRepository.findActivePrestamosByLibroId(libro.getId());
+        List<Prestamo> activePrestamos = prestamoRepository.findByLibroIdAndDevueltoFalse(libro.getId());
         if (!activePrestamos.isEmpty()) {
             throw new IllegalArgumentException("This book is currently on loan");
         }
         
         // Check user loan limit (max 3 active loans)
-        Long activeLoans = prestamoRepository.countActivePrestamosByUsuarioId(usuario.getId());
+        Long activeLoans = prestamoRepository.countByUsuarioIdAndDevueltoFalse(usuario.getId());
         if (activeLoans >= 3) {
             throw new IllegalArgumentException("User has reached the maximum number of active loans (3)");
         }

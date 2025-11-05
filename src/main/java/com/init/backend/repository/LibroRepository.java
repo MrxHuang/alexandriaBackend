@@ -4,8 +4,6 @@ import com.init.backend.entity.Libro;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,21 +20,34 @@ public interface LibroRepository extends JpaRepository<Libro, Long> {
     
     Page<Libro> findByAutorId(Long autorId, Pageable pageable);
     
-    @Query("SELECT l FROM Libro l JOIN l.autor a WHERE " +
-           "LOWER(l.titulo) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(CONCAT(a.nombre, ' ', a.apellido)) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(l.isbn) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
-    Page<Libro> searchLibros(@Param("searchTerm") String searchTerm, Pageable pageable);
+    Page<Libro> findByTituloContainingIgnoreCaseOrAutorNombreContainingIgnoreCaseOrAutorApellidoContainingIgnoreCaseOrIsbnContainingIgnoreCase(
+        String searchTerm, String searchTerm2, String searchTerm3, String searchTerm4, Pageable pageable);
     
-    @Query("SELECT l FROM Libro l JOIN l.autor a WHERE " +
-           "(:titulo IS NULL OR LOWER(l.titulo) LIKE LOWER(CONCAT('%', :titulo, '%'))) AND " +
-           "(:autorNombre IS NULL OR LOWER(CONCAT(a.nombre, ' ', a.apellido)) LIKE LOWER(CONCAT('%', :autorNombre, '%'))) AND " +
-           "(:isbn IS NULL OR LOWER(l.isbn) LIKE LOWER(CONCAT('%', :isbn, '%')))")
-    Page<Libro> searchWithFilters(
-        @Param("titulo") String titulo,
-        @Param("autorNombre") String autorNombre,
-        @Param("isbn") String isbn,
-        Pageable pageable);
+    Page<Libro> findByIsbnContainingIgnoreCase(String isbn, Pageable pageable);
+    
+    Page<Libro> findByAutorNombreContainingIgnoreCaseOrAutorApellidoContainingIgnoreCase(
+        String autorNombre, String autorApellido, Pageable pageable);
+    
+    Page<Libro> findByTituloContainingIgnoreCaseAndAutorNombreContainingIgnoreCase(
+        String titulo, String autorNombre, Pageable pageable);
+    
+    Page<Libro> findByTituloContainingIgnoreCaseAndAutorApellidoContainingIgnoreCase(
+        String titulo, String autorApellido, Pageable pageable);
+    
+    Page<Libro> findByTituloContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+        String titulo, String isbn, Pageable pageable);
+    
+    Page<Libro> findByAutorNombreContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+        String autorNombre, String isbn, Pageable pageable);
+    
+    Page<Libro> findByAutorApellidoContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+        String autorApellido, String isbn, Pageable pageable);
+    
+    Page<Libro> findByTituloContainingIgnoreCaseAndAutorNombreContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+        String titulo, String autorNombre, String isbn, Pageable pageable);
+    
+    Page<Libro> findByTituloContainingIgnoreCaseAndAutorApellidoContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+        String titulo, String autorApellido, String isbn, Pageable pageable);
     
     boolean existsByIsbn(String isbn);
 }

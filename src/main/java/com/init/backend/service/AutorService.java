@@ -53,7 +53,8 @@ public class AutorService {
     }
     
     public Page<AutorDTO> searchAutores(String searchTerm, Pageable pageable) {
-        return autorRepository.searchByFullName(searchTerm, pageable)
+        return autorRepository.findByNombreContainingIgnoreCaseOrApellidoContainingIgnoreCase(
+                searchTerm, searchTerm, pageable)
                 .map(AutorDTO::new);
     }
     

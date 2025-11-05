@@ -65,13 +65,77 @@ public class LibroService {
     }
     
     public Page<LibroDTO> searchLibros(String searchTerm, Pageable pageable) {
-        return libroRepository.searchLibros(searchTerm, pageable)
+        return libroRepository.findByTituloContainingIgnoreCaseOrAutorNombreContainingIgnoreCaseOrAutorApellidoContainingIgnoreCaseOrIsbnContainingIgnoreCase(
+                searchTerm, searchTerm, searchTerm, searchTerm, pageable)
                 .map(LibroDTO::new);
     }
     
     public Page<LibroDTO> searchLibrosWithFilters(String titulo, String autorNombre, String isbn, Pageable pageable) {
-        return libroRepository.searchWithFilters(titulo, autorNombre, isbn, pageable)
-                .map(LibroDTO::new);
+        boolean hasTitulo = titulo != null && !titulo.isEmpty();
+        boolean hasAutor = autorNombre != null && !autorNombre.isEmpty();
+        boolean hasIsbn = isbn != null && !isbn.isEmpty();
+        
+        // Si todos los filtros están presentes
+        if (hasTitulo && hasAutor && hasIsbn) {
+            // Intentar primero con nombre, luego con apellido si no hay resultados
+            Page<Libro> result = libroRepository.findByTituloContainingIgnoreCaseAndAutorNombreContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+                    titulo, autorNombre, isbn, pageable);
+            if (result.isEmpty()) {
+                result = libroRepository.findByTituloContainingIgnoreCaseAndAutorApellidoContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+                        titulo, autorNombre, isbn, pageable);
+            }
+            return result.map(LibroDTO::new);
+        }
+        
+        // Si solo título y autor
+        if (hasTitulo && hasAutor && !hasIsbn) {
+            Page<Libro> byNombre = libroRepository.findByTituloContainingIgnoreCaseAndAutorNombreContainingIgnoreCase(
+                    titulo, autorNombre, pageable);
+            Page<Libro> byApellido = libroRepository.findByTituloContainingIgnoreCaseAndAutorApellidoContainingIgnoreCase(
+                    titulo, autorNombre, pageable);
+            // Usar el que tenga más resultados o el primero
+            return (byNombre.getTotalElements() > byApellido.getTotalElements() ? byNombre : byApellido)
+                    .map(LibroDTO::new);
+        }
+        
+        // Si solo título y ISBN
+        if (hasTitulo && !hasAutor && hasIsbn) {
+            return libroRepository.findByTituloContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+                    titulo, isbn, pageable)
+                    .map(LibroDTO::new);
+        }
+        
+        // Si solo autor y ISBN
+        if (!hasTitulo && hasAutor && hasIsbn) {
+            Page<Libro> byNombre = libroRepository.findByAutorNombreContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+                    autorNombre, isbn, pageable);
+            Page<Libro> byApellido = libroRepository.findByAutorApellidoContainingIgnoreCaseAndIsbnContainingIgnoreCase(
+                    autorNombre, isbn, pageable);
+            return (byNombre.getTotalElements() > byApellido.getTotalElements() ? byNombre : byApellido)
+                    .map(LibroDTO::new);
+        }
+        
+        // Si solo título
+        if (hasTitulo && !hasAutor && !hasIsbn) {
+            return libroRepository.findByTituloContainingIgnoreCase(titulo, pageable)
+                    .map(LibroDTO::new);
+        }
+        
+        // Si solo autor
+        if (!hasTitulo && hasAutor && !hasIsbn) {
+            return libroRepository.findByAutorNombreContainingIgnoreCaseOrAutorApellidoContainingIgnoreCase(
+                    autorNombre, autorNombre, pageable)
+                    .map(LibroDTO::new);
+        }
+        
+        // Si solo ISBN
+        if (!hasTitulo && !hasAutor && hasIsbn) {
+            return libroRepository.findByIsbnContainingIgnoreCase(isbn, pageable)
+                    .map(LibroDTO::new);
+        }
+        
+        // Si no hay filtros, devolver todos
+        return getAllLibrosPaginated(pageable);
     }
     
     @Cacheable(value = "librosByAutor", key = "#autorId")
